@@ -1,0 +1,37 @@
+name: Test
+on: [push]
+jobs:
+  test:
+    strategy:
+      matrix:
+        go-version: [1.14.x, 1.15.x]
+        platform: [ubuntu-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v1
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Lint
+      uses: golangci/golangci-lint-action@v2
+      with:
+          version: v1.29
+
+    - name: Test
+      run: make coverage
+
+    - name: Convert coverage to lcov
+      uses: jandelgado/gcov2lcov-action@v1.0.0
+      with:
+        infile: build/cover.out
+        outfile: cover.lcov
+
+    - name: Coveralls
+      uses: coverallsapp/github-action@v1.0.1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        path-to-lcov: cover.lcov
