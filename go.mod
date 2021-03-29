@@ -1,4 +1,4 @@
-module github.com/mah0x211/linewriter
+module github.com/mah0x211/go-linewriter
 
 go 1.15
 
