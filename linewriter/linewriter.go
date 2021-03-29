@@ -30,7 +30,10 @@ func (w *LineWriter) Len() int {
 }
 
 func (w *LineWriter) FlushAll() (int, error) {
-	n := w.Len()
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	n := w.buf.Len()
 	if n == 0 {
 		return 0, nil
 	}
@@ -110,6 +113,8 @@ func (w *LineWriter) flushMultiline() (int, error) {
 }
 
 func (w *LineWriter) Flush() (int, error) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
 	if w.multiline {
 		return w.flushMultiline()
 	}
@@ -118,16 +123,16 @@ func (w *LineWriter) Flush() (int, error) {
 
 func (w *LineWriter) Write(b []byte) (int, error) {
 	w.mu.Lock()
-	defer w.mu.Unlock()
 	n, _ := w.buf.Write(b)
+	w.mu.Unlock()
 	_, err := w.Flush()
 	return n, err
 }
 
 func (w *LineWriter) WriteString(s string) (int, error) {
 	w.mu.Lock()
-	defer w.mu.Unlock()
 	n, _ := w.buf.WriteString(s)
+	w.mu.Unlock()
 	_, err := w.Flush()
 	return n, err
 }
